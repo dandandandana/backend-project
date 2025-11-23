@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!-- namespace：必须与 Mapper 接口的全类名一致 -->
+<mapper namespace="com.dan.dandexiangmu.mapper.UserMapper">
+
+    <!-- 1. 根据邮箱查询用户 -->
+    <select id="selectByEmail" parameterType="String" resultType="User">
+        SELECT id, email, password, nickname, create_time AS createTime
+        FROM sys_user
+        WHERE email = #{email}  <!-- #{email}：参数占位符（防止SQL注入） -->
+    </select>
+
+    <!-- 2. 新增用户（注册） -->
+    <insert id="insert" parameterType="User" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO sys_user (email, password, nickname)
+        VALUES (#{email}, #{password}, #{nickname})
+    </insert>
+
+    <!-- 3. 邮箱查重（统计邮箱存在数量） -->
+    <select id="countByEmail" parameterType="String" resultType="int">
+        SELECT COUNT(1)
+        FROM sys_user
+        WHERE email = #{email}
+    </select>
+    <!-- UserMapper.xml 中新增 -->
+    <select id="selectById" parameterType="Long" resultType="User">
+        SELECT id, email, password, nickname, create_time AS createTime
+        FROM sys_user
+        WHERE id = #{id}
+    </select>
+    <update id="updateNicknameById" parameterType="com.dan.dandexiangmu.entity.User">
+        UPDATE sys_user
+        SET nickname = #{nickname}
+        WHERE id = #{id}
+    </update>
+    <update id="updateAvatarById" parameterType="com.dan.dandexiangmu.entity.User">
+        UPDATE sys_user
+        SET avatar = #{avatar}
+        WHERE id = #{id}
+    </update>
+    <update id="updateProfileFull">
+        UPDATE sys_user
+        <set>
+            <if test="nickname != null and nickname != ''">nickname = #{nickname},</if>
+            <if test="gender != null and gender != ''">gender = #{gender},</if>
+            <if test="birthday != null">birthday = #{birthday},</if>
+            <if test="signature != null">signature = #{signature},</if>
+            update_time = NOW() <!-- 若有update_time字段，新增时自动更新；若无则删除此行 -->
+        </set>
+        WHERE id = #{userId}
+    </update>
+    <!-- 新增：更新密码 -->
+    <update id="updatePasswordById">
+        UPDATE sys_user
+        SET password = #{newPassword},
+        update_time = NOW() <!-- 若无update_time字段则删除此行 -->
+        WHERE id = #{userId}
+    </update>
+
+    <!-- 新增：更新邮箱验证状态 -->
+    <update id="updateEmailVerified">
+        UPDATE sys_user
+        SET email_verified = #{emailVerified},
+        update_time = NOW() <!-- 若无update_time字段则删除此行 -->
+        WHERE id = #{userId}
+    </update>
+
+</mapper>
